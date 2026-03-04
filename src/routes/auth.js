@@ -14,8 +14,7 @@ router.post('/login', (req, res) => {
     return res.status(400).json({ error: '用户名和密码不能为空' });
   }
   
-  const stmt = db.prepare('SELECT * FROM users WHERE username = ?');
-  const user = stmt.get(username);
+  const user = db.getUserByUsername(username);
   
   if (!user || !bcrypt.compareSync(password, user.password)) {
     return res.status(401).json({ error: '用户名或密码错误' });
@@ -39,15 +38,14 @@ router.post('/register', (req, res) => {
   }
   
   try {
-    const bcrypt = require('bcryptjs');
-    const stmt = db.prepare('INSERT INTO users (username, password) VALUES (?, ?)');
-    const result = stmt.run(username, bcrypt.hashSync(password, 10));
-    
-    res.json({ message: '注册成功', userId: result.lastInsertRowid });
-  } catch (err) {
-    if (err.message.includes('UNIQUE constraint')) {
+    const existingUser = db.getUserByUsername(username);
+    if (existingUser) {
       return res.status(400).json({ error: '用户名已存在' });
     }
+    
+    const newUser = db.createUser(username, password);
+    res.json({ message: '注册成功', userId: newUser.id });
+  } catch (err) {
     res.status(500).json({ error: '注册失败' });
   }
 });

@@ -141,9 +141,9 @@ const handleSave = async () => {
   try {
     if (isEdit.value) {
       await updateNote(currentId.value, form)
-('更新成功')
+      ElMessage.success('更新成功')
     } else {
-      ElMessage.success      await createNote(form)
+      await createNote(form)
       ElMessage.success('创建成功')
     }
     dialogVisible.value = false
